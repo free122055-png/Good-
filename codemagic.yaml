@@ -1,0 +1,78 @@
+workflows:
+  android-workflow:
+    name: BINISTA Android AAB Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      node: 20
+      java: 21
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install --legacy-peer-deps
+      - name: Build Web Production Bundle
+        script: |
+          npm run build
+      - name: Sync Capacitor Android
+        script: |
+          npx cap sync android
+          if [ -f "android/variables.gradle" ]; then
+            perl -i -pe 's/targetSdkVersion\s*=\s*\d+/targetSdkVersion = 36/g' android/variables.gradle
+            perl -i -pe 's/compileSdkVersion\s*=\s*\d+/compileSdkVersion = 36/g' android/variables.gradle
+          fi
+      - name: Build Android AAB (Google Play Bundle)
+        script: |
+          cd android
+          echo "=== Java Environment ==="
+          java -version
+          javac -version
+          echo "========================"
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon --stacktrace
+      - name: Sign Android App Bundle (AAB)
+        script: |
+          AAB_FILE=$(find android/app/build/outputs/bundle/release -name "*.aab" 2>/dev/null | head -n 1)
+
+          if [ -z "$AAB_FILE" ] || [ ! -f "$AAB_FILE" ]; then
+            echo "ERROR: Release AAB file not found!"
+            exit 1
+          fi
+
+          KEYSTORE=""
+          if [ -f "android/app/release.keystore" ]; then
+            KEYSTORE="android/app/release.keystore"
+          elif [ -f "release.keystore" ]; then
+            KEYSTORE="release.keystore"
+          elif [ -f "public/keystore_b64.txt" ]; then
+            KEYSTORE="/tmp/release.keystore"
+            node -e "const fs=require('fs');fs.writeFileSync('/tmp/release.keystore', Buffer.from(fs.readFileSync('public/keystore_b64.txt','utf8').trim(),'base64'));"
+          elif [ -n "$CM_KEYSTORE_PATH" ] && [ -f "$CM_KEYSTORE_PATH" ]; then
+            KEYSTORE="$CM_KEYSTORE_PATH"
+          elif [ -n "$CM_KEYSTORE" ]; then
+            KEYSTORE="/tmp/release.keystore"
+            node -e "const fs=require('fs');fs.writeFileSync('/tmp/release.keystore', Buffer.from(process.env.CM_KEYSTORE.trim(),'base64'));"
+          fi
+
+          if [ -z "$KEYSTORE" ] || [ ! -f "$KEYSTORE" ]; then
+            echo "ERROR: Keystore is missing!"
+            exit 1
+          fi
+
+          STORE_PASS="${CM_KEYSTORE_PASSWORD:-almayadin123}"
+          ALIAS_NAME="${CM_KEY_ALIAS:-almayadin}"
+          KEY_PASS="${CM_KEY_PASSWORD:-$STORE_PASS}"
+
+          echo "Signing AAB ($AAB_FILE) with keystore: $KEYSTORE, alias: $ALIAS_NAME..."
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore "$KEYSTORE" \
+            -storepass "$STORE_PASS" \
+            -keypass "$KEY_PASS" \
+            "$AAB_FILE" "$ALIAS_NAME"
+
+          echo "AAB Successfully Signed!"
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab
+    publishing:
+      email:
+        recipients:
+          - free122055@gmail.com

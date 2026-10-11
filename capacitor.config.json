@@ -1,0 +1,30 @@
+{
+  "appId": "com.dailyinternetoffer.bd",
+  "appName": "BINISTA",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true,
+    "hardwareAccelerated": true,
+    "backgroundColor": "#020d17"
+  },
+  "server": {
+    "cleartext": true,
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "backgroundColor": "#ffffffff",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_INSIDE",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "CapacitorHttp": {
+      "enabled": false
+    }
+  }
+}

@@ -1,0 +1,629 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["customer", "admin"] },
+        "status": { "type": "string", "enum": ["active", "blocked"] },
+        "phoneNumber": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "coverPhotoURL": { "type": "string" },
+        "bio": { "type": "string" },
+        "website": { "type": "string" },
+        "category": { "type": "string" },
+        "badgeTitle": { "type": "string" },
+        "location": { "type": "string" },
+        "followersCount": { "type": "number" },
+        "followingCount": { "type": "number" },
+        "address": { "type": "string" },
+        "connectionCode": { "type": "string" },
+        "birthday": { "type": "string" },
+        "password": { "type": "string" },
+        "userPassword": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" },
+        "lastLoginAt": { "type": "number" }
+      },
+      "required": ["id", "email"]
+    },
+    "Reminder": {
+      "title": "Reminder",
+      "description": "Personal or shared reminder",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "recipientId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "scheduledAt": { "type": "number" },
+        "repeat": { "type": "string" },
+        "priority": { "type": "string" },
+        "type": { "type": "string", "enum": ["personal", "wish"] },
+        "wishType": { "type": "string" },
+        "templateId": { "type": "string" },
+        "customMessage": { "type": "string" },
+        "senderName": { "type": "string" },
+        "recipientName": { "type": "string" },
+        "signature": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "number" }
+      }
+    },
+    "Connection": {
+      "title": "Connection",
+      "description": "Connection between two users for reminders",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userA": { "type": "string" },
+        "userB": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "blocked"] },
+        "createdAt": { "type": "number" }
+      }
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "nameBn": { "type": "string" },
+        "slug": { "type": "string" },
+        "order": { "type": "number" },
+        "image": { "type": "string" }
+      }
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Product information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "nameBn": { "type": "string" },
+        "slug": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "basePrice": { "type": "number" },
+        "stockStatus": { "type": "string" },
+        "isBestSelling": { "type": "boolean" },
+        "image": { "type": "string" }
+      }
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "total": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "items": { "type": "array" }
+      }
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "User notification",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      }
+    },
+    "WishlistItem": {
+      "title": "Wishlist Item",
+      "description": "Item in user's wishlist",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "productId": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "image": { "type": "string" }
+      }
+    },
+    "Address": {
+      "title": "Address",
+      "description": "User's saved address",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "label": { "type": "string" },
+        "fullAddress": { "type": "string" },
+        "receiverName": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "isDefault": { "type": "boolean" }
+      }
+    },
+    "FoodOrder": {
+      "title": "Food Order",
+      "description": "Order from a food store",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "total": { "type": "number" },
+        "status": { "type": "string" },
+        "items": { "type": "array" },
+        "createdAt": { "type": "number" }
+      }
+    },
+    "Store": {
+      "title": "Store",
+      "description": "Food store or restaurant",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "isActive": { "type": "boolean" }
+      }
+    },
+    "VideoTilawat": {
+      "title": "VideoTilawat",
+      "description": "Video Tilawat recording item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "surahName": { "type": "string" },
+        "surahNameBn": { "type": "string" },
+        "reciterName": { "type": "string" },
+        "reciterNameBn": { "type": "string" },
+        "reciterAvatar": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "duration": { "type": "string" },
+        "durationSeconds": { "type": "number" },
+        "views": { "type": "string" },
+        "arabicTitle": { "type": "string" },
+        "description": { "type": "string" },
+        "tags": { "type": "array" },
+        "createdAt": { "type": "number" }
+      }
+    },
+    "Caption": {
+      "title": "Caption",
+      "description": "Social and status captions in Caption Ghor",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "category": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "categorySlug": { "type": "string" },
+        "isPopular": { "type": "boolean" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "number" },
+        "copyCount": { "type": "number" }
+      }
+    },
+    "CaptionCategory": {
+      "title": "CaptionCategory",
+      "description": "Categories for captions in Caption Ghor",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "color": { "type": "string" },
+        "icon": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "sortOrder": { "type": "number" }
+      }
+    },
+    "TelecomOffer": {
+      "title": "TelecomOffer",
+      "description": "Mobile operator internet, minute, and bundle packages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "operator": { "type": "string" },
+        "category": { "type": "string" },
+        "name": { "type": "string" },
+        "amount": { "type": "string" },
+        "validity": { "type": "string" },
+        "price": { "type": "number" },
+        "logo": { "type": "string" },
+        "description": { "type": "string" },
+        "loanRule": { "type": "string" },
+        "loanNote": { "type": "string" },
+        "prepaidPostpaid": { "type": "string" },
+        "targetSim": { "type": "string" },
+        "activationNote": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      }
+    },
+    "TelecomPaymentMethod": {
+      "title": "TelecomPaymentMethod",
+      "description": "Payment methods for telecom recharge and packages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "methodName": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "instruction": { "type": "string" },
+        "isActive": { "type": "boolean" }
+      }
+    },
+    "TelecomOrder": {
+      "title": "TelecomOrder",
+      "description": "Customer orders for internet and minute packages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhone": { "type": "string" },
+        "offerId": { "type": "string" },
+        "operator": { "type": "string" },
+        "category": { "type": "string" },
+        "offerName": { "type": "string" },
+        "price": { "type": "number" },
+        "targetNumber": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "paymentNumber": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "screenshotUrl": { "type": "string" },
+        "status": { "type": "string" },
+        "rejectReason": { "type": "string" },
+        "createdAt": { "type": "number" }
+      }
+    },
+    "Biodata": {
+      "title": "Biodata",
+      "description": "Matrimonial Shariah Marriage Biodatas",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "biodataCode": { "type": "string" },
+        "userId": { "type": "string" },
+        "gender": { "type": "string" },
+        "status": { "type": "string" },
+        "isVerified": { "type": "boolean" },
+        "isFeatured": { "type": "boolean" },
+        "fullName": { "type": "string" },
+        "maritalStatus": { "type": "string" },
+        "age": { "type": "number" },
+        "height": { "type": "string" },
+        "weight": { "type": "string" },
+        "complexion": { "type": "string" },
+        "bloodGroup": { "type": "string" },
+        "presentDistrict": { "type": "string" },
+        "presentUpazila": { "type": "string" },
+        "permanentDistrict": { "type": "string" },
+        "educationMethod": { "type": "string" },
+        "highestDegree": { "type": "string" },
+        "institute": { "type": "string" },
+        "occupation": { "type": "string" },
+        "monthlyIncome": { "type": "string" },
+        "fatherOccupation": { "type": "string" },
+        "motherOccupation": { "type": "string" },
+        "brothersCount": { "type": "number" },
+        "sistersCount": { "type": "number" },
+        "familyDetails": { "type": "string" },
+        "familyStatus": { "type": "string" },
+        "salahRegularity": { "type": "string" },
+        "hijabOrBeard": { "type": "string" },
+        "quranRecitation": { "type": "string" },
+        "mahramNonMahramCompliance": { "type": "string" },
+        "aboutSelf": { "type": "string" },
+        "expectedAgeRange": { "type": "string" },
+        "expectedHeight": { "type": "string" },
+        "expectedEducation": { "type": "string" },
+        "expectedReligiousQualities": { "type": "string" },
+        "guardianName": { "type": "string" },
+        "guardianRelation": { "type": "string" },
+        "guardianPhone": { "type": "string" },
+        "photoBlurred": { "type": "boolean" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      }
+    },
+    "BiodataRequest": {
+      "title": "BiodataRequest",
+      "description": "Requests for guardian contact numbers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "biodataId": { "type": "string" },
+        "biodataCode": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhone": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "status": { "type": "string" },
+        "candidateGuardianName": { "type": "string" },
+        "candidateGuardianPhone": { "type": "string" },
+        "candidateGuardianRelation": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      }
+    },
+    "PromoCode": {
+      "title": "Promo Code",
+      "description": "Discount promo codes configured by admin",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "categoryName": { "type": "string" },
+        "discountType": { "type": "string", "enum": ["percentage", "fixed"] },
+        "discountValue": { "type": "number" },
+        "minOrderAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["code", "discountType", "discountValue", "status"]
+    },
+    "LocationSharing": {
+      "title": "Location Sharing Session",
+      "description": "A session for real-time location sharing between two users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "viewerId": { "type": "string" },
+        "viewerName": { "type": "string" },
+        "sharerId": { "type": "string" },
+        "sharerName": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "active", "rejected", "stopped"] },
+        "sharingStartedAt": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      }
+    },
+    "UserLocation": {
+      "title": "User Location",
+      "description": "Real-time GPS coordinates of a user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "speed": { "type": "number" },
+        "heading": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "lastUpdated": { "type": "number" }
+      }
+    },
+    "GovCategory": {
+      "title": "Government Service Category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "icon": { "type": "string" },
+        "order": { "type": "number" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["name", "icon"]
+    },
+    "GovWebsite": {
+      "title": "Government Website",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "url": { "type": "string" },
+        "isPopular": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["categoryId", "name", "url"]
+    },
+    "ChatRoom": {
+      "title": "Chat Room",
+      "description": "Conversation between users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "participants": { "type": "array" },
+        "lastMessage": { "type": "string" },
+        "lastMessageAt": { "type": "number" },
+        "unreadCounts": { "type": "object" },
+        "users": { "type": "object" }
+      }
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "Individual message in a chat room",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "read": { "type": "boolean" },
+        "sentBy": { "type": "string" },
+        "isScheduled": { "type": "boolean" },
+        "isAutoReply": { "type": "boolean" }
+      }
+    },
+    "UserAiAgent": {
+      "title": "User Personal AI Agent",
+      "description": "Personal AI Agent configuration and rules for a user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "enabled": { "type": "boolean" },
+        "agentName": { "type": "string" },
+        "statusMode": { "type": "string" },
+        "persona": { "type": "string" },
+        "customInstructions": { "type": "string" },
+        "autoReplyOffline": { "type": "boolean" },
+        "allowScheduledMessages": { "type": "boolean" },
+        "sensitiveActionGuard": { "type": "boolean" },
+        "sleepSchedule": { "type": "object" },
+        "updatedAt": { "type": "number" }
+      }
+    },
+    "ScheduledMessage": {
+      "title": "Scheduled Message",
+      "description": "Scheduled messages queued to be sent automatically by the user's AI Agent",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "targetUserId": { "type": "string" },
+        "roomId": { "type": "string" },
+        "message": { "type": "string" },
+        "scheduledAt": { "type": "number" },
+        "status": { "type": "string" },
+        "sentAt": { "type": "number" },
+        "createdAt": { "type": "number" }
+      }
+    },
+    "AiAgentLog": {
+      "title": "AI Agent Log",
+      "description": "Audit history of automated actions performed by the personal AI Agent",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "action": { "type": "string" },
+        "targetUserId": { "type": "string" },
+        "targetUserName": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "reminders_v2/{reminderId}": {
+      "schema": "Reminder",
+      "description": "Premium reminders and wishes"
+    },
+    "connections/{connectionId}": {
+      "schema": "Connection",
+      "description": "User connections"
+    },
+    "categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Product categories"
+    },
+    "products/{productId}": {
+      "schema": "Product",
+      "description": "Products"
+    },
+    "orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders"
+    },
+    "food_orders/{orderId}": {
+      "schema": "FoodOrder",
+      "description": "Food orders"
+    },
+    "stores/{storeId}": {
+      "schema": "Store",
+      "description": "Food stores"
+    },
+    "notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Notifications"
+    },
+    "wishlist/{wishlistId}": {
+      "schema": "WishlistItem",
+      "description": "Wishlist items"
+    },
+    "addresses/{addressId}": {
+      "schema": "Address",
+      "description": "Saved addresses"
+    },
+    "video_tilawat/{videoId}": {
+      "schema": "VideoTilawat",
+      "description": "Video Tilawat recitations and links"
+    },
+    "biodatas/{biodataId}": {
+      "schema": "Biodata",
+      "description": "Matrimonial Shariah Marriage Biodatas"
+    },
+    "biodata_requests/{requestId}": {
+      "schema": "BiodataRequest",
+      "description": "Requests for guardian contact numbers"
+    },
+    "captions/{captionId}": {
+      "schema": "Caption",
+      "description": "Captions collection in Caption Ghor"
+    },
+    "caption_categories/{categoryId}": {
+      "schema": "CaptionCategory",
+      "description": "Categories for Caption Ghor"
+    },
+    "telecom_offers/{offerId}": {
+      "schema": "TelecomOffer",
+      "description": "Telecom internet and minute offers"
+    },
+    "telecom_payment_methods/{methodId}": {
+      "schema": "TelecomPaymentMethod",
+      "description": "Payment methods for telecom packages"
+    },
+    "telecom_orders/{orderId}": {
+      "schema": "TelecomOrder",
+      "description": "Customer orders for telecom packages"
+    },
+    "promo_codes/{promoId}": {
+      "schema": "PromoCode",
+      "description": "Promo codes for discount validation"
+    },
+    "location_sharings/{sessionId}": {
+      "schema": "LocationSharing",
+      "description": "Real-time location sharing sessions between users"
+    },
+    "user_locations/{userId}": {
+      "schema": "UserLocation",
+      "description": "Real-time user GPS data"
+    },
+    "gov_categories/{categoryId}": {
+      "schema": "GovCategory",
+      "description": "Categories for government services"
+    },
+    "gov_websites/{websiteId}": {
+      "schema": "GovWebsite",
+      "description": "Official government website links"
+    },
+    "chat_rooms/{roomId}": {
+      "schema": "ChatRoom",
+      "description": "Conversation rooms between users"
+    },
+    "chat_rooms/{roomId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Messages within a chat room"
+    },
+    "user_ai_agents/{userId}": {
+      "schema": "UserAiAgent",
+      "description": "Personal AI agent configurations"
+    },
+    "scheduled_messages/{messageId}": {
+      "schema": "ScheduledMessage",
+      "description": "Scheduled messages queued to be sent automatically"
+    },
+    "ai_agent_logs/{logId}": {
+      "schema": "AiAgentLog",
+      "description": "Activity history log of personal AI Agent actions"
+    }
+  }
+}

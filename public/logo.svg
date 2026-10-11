@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Pink/Magenta Gradient -->
+    <linearGradient id="pinkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF007A" />
+      <stop offset="100%" stop-color="#FF2D55" />
+    </linearGradient>
+    <!-- Cyan/Blue Gradient -->
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00C6FF" />
+      <stop offset="100%" stop-color="#0066FF" />
+    </linearGradient>
+    <!-- Purple/Violet Gradient -->
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7B2CBF" />
+      <stop offset="100%" stop-color="#9D4EDD" />
+    </linearGradient>
+    <!-- Central Sphere Gradient -->
+    <radialGradient id="sphereGrad" cx="35%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="50%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#FFFFFF" />
+
+  <!-- Orbital Element 1: Top-Left Pink Swash -->
+  <path d="M128 256 C128 140, 220 100, 356 120 C300 90, 180 90, 120 180 C90 220, 95 280, 128 256 Z" fill="url(#pinkGrad)" />
+  <path d="M140 270 C100 240, 110 160, 256 116 C180 120, 130 170, 140 270 Z" fill="url(#pinkGrad)" />
+
+  <!-- Orbital Element 2: Right Cyan Swash -->
+  <path d="M384 256 C384 372, 292 412, 156 392 C212 422, 332 422, 392 332 C422 292, 417 232, 384 256 Z" fill="url(#blueGrad)" />
+
+  <!-- Orbital Element 3: Bottom Purple Swash -->
+  <path d="M256 384 C140 384, 100 292, 120 156 C90 212, 90 332, 180 392 C220 422, 280 417, 256 384 Z" fill="url(#purpleGrad)" />
+
+  <!-- Central Nucleus Sphere with Connectors -->
+  <g transform="translate(256, 256)">
+    <circle cx="0" cy="0" r="75" fill="url(#sphereGrad)" />
+    <!-- Connected outer node top-right -->
+    <path d="M50 -50 L90 -90" stroke="#3B82F6" stroke-width="16" stroke-linecap="round" />
+    <circle cx="95" cy="-95" r="22" fill="#3B82F6" />
+    <!-- Connected outer node bottom-left -->
+    <path d="M-50 50 L-90 90" stroke="#3B82F6" stroke-width="16" stroke-linecap="round" />
+    <circle cx="-95" cy="95" r="22" fill="#3B82F6" />
+  </g>
+</svg>
