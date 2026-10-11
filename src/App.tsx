@@ -10,7 +10,7 @@ import { ReelUploadFlowModal } from './components/ReelUploadFlowModal';
 import { PlusActionSheet } from './components/PlusActionSheet';
 import { MenuDrawer } from './components/MenuDrawer';
 import { SearchOverlay } from './components/SearchOverlay';
-import { AiSparklesOverlay } from './components/AiSparklesOverlay';
+import { MessengerOverlay } from './components/MessengerOverlay';
 import { SavesOverlay } from './components/SavesOverlay';
 import { UserProfileModal, CURRENT_LOGGED_IN_USER, UserProfileData } from './components/UserProfileModal';
 import { TrendingVideosModal } from './components/TrendingVideosModal';
@@ -50,7 +50,38 @@ import { useUser } from './contexts/UserContext';
 export default function App() {
   const { currentUser, loading, logout } = useUser();
   const [activeTab, setActiveTab] = useState<NavTab>('home');
-  const [stories, setStories] = useState<StoryItem[]>(STORIES_DATA);
+  const [stories, setStories] = useState<StoryItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('binista_stories_v3');
+      if (saved) {
+        const parsed: StoryItem[] = JSON.parse(saved);
+        const now = Date.now();
+        const valid = parsed.filter(s => s.isCreate || !s.expiresAt || s.expiresAt > now);
+        if (valid.length > 0) return valid;
+      }
+    } catch (e) {
+      console.error('Error loading stories:', e);
+    }
+    return STORIES_DATA;
+  });
+
+  // Save stories to localStorage and clean up expired ones automatically
+  useEffect(() => {
+    try {
+      localStorage.setItem('binista_stories_v3', JSON.stringify(stories));
+    } catch (e) {
+      console.error('Error saving stories:', e);
+    }
+  }, [stories]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      setStories(prev => prev.filter(s => s.isCreate || !s.expiresAt || s.expiresAt > now));
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [videos, setVideos] = useState<VideoItem[]>(VIDEOS_DATA);
 
   const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
@@ -457,7 +488,7 @@ export default function App() {
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-slate-950 text-white' : 'bg-slate-200 text-slate-900'} flex justify-center items-center py-0 md:py-6 antialiased font-sans select-none transition-colors duration-200`}>
       {/* Mobile Frame Container */}
-      <div className={`w-full max-w-[430px] min-h-screen md:min-h-[880px] md:max-h-[920px] ${isDarkMode ? 'bg-[#0a0d14] text-white' : 'bg-white text-slate-900'} md:rounded-[40px] shadow-2xl overflow-y-auto no-scrollbar relative flex flex-col justify-between border-0 md:border-[8px] ${isDarkMode ? 'md:border-slate-800' : 'md:border-slate-900'} transition-colors duration-200`}>
+      <div className={`w-full max-w-[430px] h-screen md:h-[880px] ${isDarkMode ? 'bg-[#0a0d14] text-white' : 'bg-white text-slate-900'} md:rounded-[40px] shadow-2xl overflow-hidden relative flex flex-col border-0 md:border-[8px] ${isDarkMode ? 'md:border-slate-800' : 'md:border-slate-900'}`}>
         
         {/* Global Toast Notification */}
         {toastMessage && (
@@ -467,11 +498,22 @@ export default function App() {
           </div>
         )}
 
-        {/* App Main Content */}
-        <div className="flex-1 flex flex-col">
+        {/* Header - Fixed Top */}
+        <div className="shrink-0 z-30">
+          <Header
+            onOpenMenu={handleOpenMenu}
+            onOpenNotifications={() => setIsNotificationCenterOpen(true)}
+            unreadCount={unreadNotificationsCount}
+            onOpenAdmin={() => setIsAdminOpen(true)}
+            isDarkMode={isDarkMode}
+          />
+        </div>
+
+        {/* Dedicated Scrollable Feed Container */}
+        <div className="flex-1 overflow-y-auto no-scrollbar hyper-scroll relative flex flex-col pb-28">
           {/* Notification Permission Banner Prompt */}
           {showNotificationPrompt && (
-            <div className="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold shrink-0 animate-in slide-in-from-top-2">
+            <div className="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold shrink-0">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>Enable BINISTA push notifications!</span>
@@ -485,7 +527,7 @@ export default function App() {
                     }
                     setShowNotificationPrompt(false);
                   }}
-                  className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-[11px] rounded-lg cursor-pointer transition-colors"
+                  className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-[11px] rounded-lg cursor-pointer"
                 >
                   Allow
                 </button>
@@ -499,20 +541,14 @@ export default function App() {
             </div>
           )}
 
-          {/* Header */}
-          <Header
-            onOpenMenu={handleOpenMenu}
-            onOpenNotifications={() => setIsNotificationCenterOpen(true)}
-            unreadCount={unreadNotificationsCount}
-            onOpenAdmin={() => setIsAdminOpen(true)}
-          />
-
-          {/* Stories Horizontal Carousel */}
-          <StoriesSection
-            stories={stories}
-            onSelectStory={handleSelectStory}
-            onCreateStory={handleCreateStoryClick}
-          />
+          {/* Stories Section - scrolls naturally with the video feed */}
+          <div className="shrink-0">
+            <StoriesSection
+              stories={stories}
+              onSelectStory={handleSelectStory}
+              onCreateStory={handleCreateStoryClick}
+            />
+          </div>
 
           {/* 2-Column Video Grid */}
           <VideoGrid
@@ -522,12 +558,14 @@ export default function App() {
           />
         </div>
 
-        {/* Floating Bottom Navigation Bar */}
-        <BottomNav
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          onCreateClick={handlePlusButtonClick}
-        />
+        {/* Floating Bottom Navigation Bar - Fixed Bottom */}
+        <div className="absolute bottom-0 left-0 right-0 z-40 bg-white/80 dark:bg-[#0a0d14]/80 backdrop-blur-lg">
+          <BottomNav
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            onCreateClick={handlePlusButtonClick}
+          />
+        </div>
 
         {/* Floating Popover menu when clicking Plus (+) Button */}
         <PlusActionSheet
@@ -562,14 +600,14 @@ export default function App() {
             onSelectUser={handleSelectUser}
             currentUser={currentUser}
             onDeleteVideo={async (videoId) => {
-              if (currentUser) {
-                try {
-                  await deleteVideoPermanent(currentUser.uid, videoId, selectedVideo.storagePath);
-                  setSelectedVideo(null);
-                  triggerToast('ভিডিওটি সফলভাবে মুছে ফেলা হয়েছে');
-                } catch (e: any) {
-                  triggerToast(e.message || 'Error deleting video');
-                }
+              try {
+                const targetUid = currentUser?.uid || selectedVideo?.userId || 'guest_creator';
+                await deleteVideoPermanent(targetUid, videoId, selectedVideo.storagePath);
+                setSelectedVideo(null);
+                setVideos((prev) => prev.filter((v) => v.id !== videoId));
+                triggerToast('ভিডিওটি সফলভাবে মুছে ফেলা হয়েছে');
+              } catch (e: any) {
+                triggerToast(e.message || 'Error deleting video');
               }
             }}
           />
@@ -613,6 +651,7 @@ export default function App() {
           onClose={() => setIsProfileOpen(false)}
           onSelectVideo={handleSelectVideo}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          isDarkMode={isDarkMode}
         />
 
         <TrendingVideosModal
@@ -686,8 +725,9 @@ export default function App() {
         )}
 
         {activeTab === 'ai' && (
-          <AiSparklesOverlay
+          <MessengerOverlay
             onClose={() => setActiveTab('home')}
+            isDarkMode={isDarkMode}
           />
         )}
 

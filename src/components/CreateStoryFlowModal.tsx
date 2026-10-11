@@ -48,6 +48,7 @@ export const CreateStoryFlowModal: React.FC<CreateStoryFlowModalProps> = memo(({
   const [selectedFontId, setSelectedFontId] = useState('hind-siliguri');
   const [activeLangFilter, setActiveLangFilter] = useState<'all' | 'bn' | 'en' | 'ar'>('all');
   const [isPublishing, setIsPublishing] = useState(false);
+  const [selectedDurationHours, setSelectedDurationHours] = useState<number>(24);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoPreviewRef = useRef<HTMLVideoElement>(null);
@@ -139,6 +140,7 @@ export const CreateStoryFlowModal: React.FC<CreateStoryFlowModalProps> = memo(({
       const authorAvatar = currentUser?.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=75';
       const authorName = currentUser?.name || authorUsername;
 
+      const expiresAt = Date.now() + selectedDurationHours * 3600 * 1000;
       const newStoryItem: StoryItem = {
         id: `story-${Date.now()}`,
         username: authorUsername,
@@ -148,6 +150,8 @@ export const CreateStoryFlowModal: React.FC<CreateStoryFlowModalProps> = memo(({
         borderColor: selectedMedia.isVideo ? 'border-[#ec4899]' : 'border-[#00f2fe]',
         isVideo: selectedMedia.isVideo,
         caption: mediaCaption.trim() || undefined,
+        durationHours: selectedDurationHours,
+        expiresAt: expiresAt,
       };
 
       onPublishStory(newStoryItem);
@@ -195,6 +199,7 @@ export const CreateStoryFlowModal: React.FC<CreateStoryFlowModalProps> = memo(({
       </svg>`;
 
       const encodedSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+      const expiresAt = Date.now() + selectedDurationHours * 3600 * 1000;
 
       const newStoryItem: StoryItem = {
         id: `story-${Date.now()}`,
@@ -203,6 +208,8 @@ export const CreateStoryFlowModal: React.FC<CreateStoryFlowModalProps> = memo(({
         avatarUrl: authorAvatar,
         coverImage: encodedSvg,
         borderColor: 'border-[#a855f7]',
+        durationHours: selectedDurationHours,
+        expiresAt: expiresAt,
       };
 
       onPublishStory(newStoryItem);
@@ -445,6 +452,35 @@ export const CreateStoryFlowModal: React.FC<CreateStoryFlowModalProps> = memo(({
                 autoFocus
               />
             </div>
+
+            {/* Story Duration Selector (1 hour to 3 days max) */}
+            <div className="max-w-sm mx-auto mt-3">
+              <label className="text-xs font-bold text-gray-700 mb-1 block">
+                স্টোরি কতক্ষণ থাকবে? (1 hour to 3 days max)
+              </label>
+              <div className="grid grid-cols-5 gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
+                {[
+                  { hours: 1, label: '১ ঘণ্টা' },
+                  { hours: 6, label: '৬ ঘণ্টা' },
+                  { hours: 24, label: '২৪ ঘণ্টা' },
+                  { hours: 48, label: '৪৮ ঘণ্টা' },
+                  { hours: 72, label: '৭২ ঘণ্টা' },
+                ].map((item) => (
+                  <button
+                    key={item.hours}
+                    type="button"
+                    onClick={() => setSelectedDurationHours(item.hours)}
+                    className={`py-1.5 px-0.5 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer text-center ${
+                      selectedDurationHours === item.hours
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'text-gray-600 hover:bg-white/60'
+                    }`}
+                  >
+                    {item.hours === 1 ? '1h' : item.hours === 6 ? '6h' : item.hours === 24 ? '24h' : item.hours === 48 ? '48h' : '72h'}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Share Button */}
@@ -562,6 +598,35 @@ export const CreateStoryFlowModal: React.FC<CreateStoryFlowModalProps> = memo(({
                 className="w-full bg-gray-100 border border-gray-200 text-black text-xs rounded-2xl px-4 py-3 focus:outline-none focus:border-black font-semibold"
                 autoFocus
               />
+            </div>
+
+            {/* Story Duration Selector (1 hour to 3 days max) */}
+            <div className="max-w-sm mx-auto mt-3">
+              <label className="text-xs font-bold text-gray-700 mb-1 block">
+                স্টোরি কতক্ষণ থাকবে? (1 hour to 3 days max)
+              </label>
+              <div className="grid grid-cols-5 gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
+                {[
+                  { hours: 1, label: '১ ঘণ্টা' },
+                  { hours: 6, label: '৬ ঘণ্টা' },
+                  { hours: 24, label: '২৪ ঘণ্টা' },
+                  { hours: 48, label: '৪৮ ঘণ্টা' },
+                  { hours: 72, label: '৭২ ঘণ্টা' },
+                ].map((item) => (
+                  <button
+                    key={item.hours}
+                    type="button"
+                    onClick={() => setSelectedDurationHours(item.hours)}
+                    className={`py-1.5 px-0.5 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer text-center ${
+                      selectedDurationHours === item.hours
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'text-gray-600 hover:bg-white/60'
+                    }`}
+                  >
+                    {item.hours === 1 ? '1h' : item.hours === 6 ? '6h' : item.hours === 24 ? '24h' : item.hours === 48 ? '48h' : '72h'}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

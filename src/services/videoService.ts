@@ -468,7 +468,7 @@ export function convertMetadataToVideoItem(data: any): VideoItem {
   };
 
   return {
-    id: data.videoId || data.id,
+    id: data.videoId || data.id || data.documentId || ('vid_' + Math.random().toString(36).substring(2, 9)),
     title: data.title || data.caption || 'BINISTA Video',
     creator: data.creator || data.username || 'BINISTA Creator',
     creatorAvatar: forceHttps(data.creatorAvatar || data.userProfilePhoto) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=75',
@@ -540,7 +540,7 @@ async function fetchUserVideosFromNetwork(uid: string): Promise<VideoItem[]> {
 
     snap.forEach((docSnap) => {
       const data = docSnap.data();
-      list.push(convertMetadataToVideoItem(data));
+      list.push(convertMetadataToVideoItem({ ...data, id: data.videoId || data.id || docSnap.id }));
     });
 
     console.log(`[Firestore] Loaded ${list.length} permanent videos for user ${uid}`);
@@ -552,7 +552,8 @@ async function fetchUserVideosFromNetwork(uid: string): Promise<VideoItem[]> {
       const snap = await getDocs(videosColRef);
       const list: VideoItem[] = [];
       snap.forEach((docSnap) => {
-        list.push(convertMetadataToVideoItem(docSnap.data()));
+        const data = docSnap.data();
+        list.push(convertMetadataToVideoItem({ ...data, id: data.videoId || data.id || docSnap.id }));
       });
       list.sort((a: any, b: any) => {
         const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -739,9 +740,13 @@ export async function recordVideoDownload(videoId: string, ownerUid?: string): P
 export async function deleteVideoPermanent(
   uid: string,
   videoId: string,
-  storagePath?: string
+  storagePath?: string,
+  videoUserId?: string
 ): Promise<void> {
-  let ownerUid = uid;
+  if (!videoId) {
+    throw new Error('Video ID is missing');
+  }
+  let ownerUid = videoUserId || uid;
   try {
     const globalDocRef = doc(db, 'videos', videoId);
     const snap = await getDoc(globalDocRef);
@@ -759,16 +764,12 @@ export async function deleteVideoPermanent(
     console.warn('Could not delete global video doc:', gErr);
   }
 
-  // Delete User Video Document from both ownerUid and provided uid
-  try {
-    const userDocRef = doc(db, 'users', ownerUid, 'videos', videoId);
-    await deleteDoc(userDocRef);
-  } catch (_) {}
-
-  if (uid && uid !== ownerUid) {
+  // Delete User Video Document from all possible uids
+  const uidsToDelete = new Set([ownerUid, uid, videoUserId].filter(Boolean));
+  for (const u of uidsToDelete) {
     try {
-      const userDocRef2 = doc(db, 'users', uid, 'videos', videoId);
-      await deleteDoc(userDocRef2);
+      const userDocRef = doc(db, 'users', u, 'videos', videoId);
+      await deleteDoc(userDocRef);
     } catch (_) {}
   }
 
@@ -777,6 +778,9 @@ export async function deleteVideoPermanent(
   fastCache.invalidate(`${CACHE_KEY_USER_VIDEOS_PREFIX}${ownerUid}`);
   if (uid) {
     fastCache.invalidate(`${CACHE_KEY_USER_VIDEOS_PREFIX}${uid}`);
+  }
+  if (videoUserId) {
+    fastCache.invalidate(`${CACHE_KEY_USER_VIDEOS_PREFIX}${videoUserId}`);
   }
 
   // Delete Storage files
@@ -789,13 +793,15 @@ export async function deleteVideoPermanent(
     }
   }
 
-  try {
-    const thumbRef = ref(storage, `users/${ownerUid}/videos/${videoId}/thumbnail`);
-    await deleteObject(thumbRef);
-  } catch (_) {}
+  for (const u of uidsToDelete) {
+    try {
+      const thumbRef = ref(storage, `users/${u}/videos/${videoId}/thumbnail`);
+      await deleteObject(thumbRef);
+    } catch (_) {}
+  }
 
   // Decrement user postsCount
-  const targetDecrementUid = ownerUid || uid;
+  const targetDecrementUid = ownerUid || videoUserId || uid;
   if (targetDecrementUid) {
     try {
       const userRef = doc(db, 'users', targetDecrementUid);

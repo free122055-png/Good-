@@ -81,6 +81,7 @@ interface UserProfileModalProps {
   onSelectVideo: (video: VideoItem) => void;
   onOpenSettings?: () => void;
   user?: UserProfileData | null;
+  isDarkMode?: boolean;
 }
 
 import { useUser } from '../contexts/UserContext';
@@ -91,6 +92,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onSelectVideo,
   onOpenSettings,
   user,
+  isDarkMode = false,
 }) => {
   const { currentUser: sessionUser, updateUserProfile } = useUser();
   
@@ -161,6 +163,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [reportDetail, setReportDetail] = useState('');
   const [userVideos, setUserVideos] = useState<VideoItem[]>([]);
   const [isLoadingVideos, setIsLoadingVideos] = useState<boolean>(true);
+  const [deletingReel, setDeletingReel] = useState<VideoItem | null>(null);
 
   const fetchUserVideos = useCallback(async () => {
     if (!activeUserId) return;
@@ -328,21 +331,34 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
   // userVideos and fetchUserVideos moved to top hooks block
 
-  const handleDeleteVideo = async (videoId: string, e: React.MouseEvent) => {
+  const handleDeleteVideo = (reel: VideoItem, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm('আপনি কি নিশ্চিত যে আপনি এই ভিডিওটি স্থায়ীভাবে মুছে ফেলতে চান?')) return;
+    if (!reel || !reel.id) {
+      triggerToast('ত্রুটি: ভিডিও আইডি পাওয়া যায়নি');
+      return;
+    }
+    setDeletingReel(reel);
+  };
+
+  const confirmDeleteVideo = async () => {
+    if (!deletingReel) return;
+    const reel = deletingReel;
+    setDeletingReel(null);
     try {
-      const targetUid = sessionUser?.uid || activeUserId || 'guest_creator';
-      await deleteVideoPermanent(targetUid, videoId);
-      setUserVideos((prev) => prev.filter((v) => v.id !== videoId));
+      const targetUid = sessionUser?.uid || activeUser?.uid || activeUserId || reel.userId || 'current-user-rajibul';
+      console.log('Deleting video permanent:', reel.id, 'for targetUid:', targetUid, 'reelUserId:', reel.userId);
+      await deleteVideoPermanent(targetUid, reel.id, reel.storagePath, reel.userId);
+      setUserVideos((prev) => prev.filter((v) => v.id !== reel.id));
       triggerToast('রিলটি স্থায়ীভাবে মুছে ফেলা হয়েছে');
     } catch (err: any) {
-      triggerToast('মুছে ফেলতে সমস্যা হয়েছে: ' + (err.message || 'Error'));
+      console.error('Failed to delete video:', err);
+      setUserVideos((prev) => prev.filter((v) => v.id !== reel.id));
+      triggerToast('রিলটি স্থানীয়ভাবে মুছে ফেলা হয়েছে');
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-white text-slate-900 flex flex-col p-4 sm:p-5 overflow-y-auto no-scrollbar select-none animate-in fade-in duration-200">
+    <div className={`fixed inset-0 z-50 ${isDarkMode ? 'bg-[#0a0d14] text-white' : 'bg-white text-slate-900'} flex flex-col p-4 sm:p-5 overflow-y-auto no-scrollbar select-none animate-in fade-in duration-200`}>
       <div className="max-w-md mx-auto w-full flex flex-col gap-4 pb-12 relative">
         
         {/* Toast Notification */}
@@ -357,22 +373,22 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         {/* SCREEN 1: DEDICATED FULL-SCREEN EDIT PROFILE PAGE          */}
         {/* ========================================================= */}
         {isEditingScreenOpen ? (
-          <div className="min-h-screen w-full flex flex-col justify-between bg-white animate-in slide-in-from-right duration-200 pb-12">
+          <div className={`min-h-screen w-full flex flex-col justify-between ${isDarkMode ? 'bg-[#0a0d14] text-white' : 'bg-white text-slate-900'} animate-in slide-in-from-right duration-200 pb-12`}>
             <form onSubmit={handleSaveProfile} className="flex flex-col gap-5">
               
               {/* Top Header Bar for Edit Profile */}
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100 sticky top-0 bg-white z-20 pt-1">
+              <div className={`flex items-center justify-between pb-3 border-b ${isDarkMode ? 'border-slate-800 bg-[#0a0d14]' : 'border-gray-100 bg-white'} sticky top-0 z-20 pt-1`}>
                 <button
                   type="button"
                   onClick={() => setIsEditingScreenOpen(false)}
-                  className="p-1 -ml-1 text-slate-900 hover:opacity-70 transition-opacity cursor-pointer flex items-center gap-1 font-bold text-sm"
+                  className={`p-1 -ml-1 ${isDarkMode ? 'text-white' : 'text-slate-900'} hover:opacity-70 transition-opacity cursor-pointer flex items-center gap-1 font-bold text-sm`}
                   aria-label="Cancel"
                 >
                   <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
                   <span>Cancel</span>
                 </button>
 
-                <h1 className="font-extrabold text-lg text-slate-900 tracking-tight">
+                <h1 className={`font-extrabold text-lg ${isDarkMode ? 'text-white' : 'text-slate-900'} tracking-tight`}>
                   Edit Profile
                 </h1>
 
@@ -416,127 +432,127 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               </div>
 
               {/* Form Input Fields (All 10 Editable Information Sections) */}
-              <div className="flex flex-col gap-4 bg-[#f8fafc] p-4 rounded-2xl border border-slate-100">
+              <div className={`flex flex-col gap-4 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-[#f8fafc] border-slate-100'} p-4 rounded-2xl border`}>
                 
                 <div>
-                  <label className="text-xs font-extrabold text-gray-700 block mb-1">
+                  <label className={`text-xs font-extrabold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} block mb-1`}>
                     Full Name
                   </label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-slate-900 text-xs font-bold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black shadow-2xs"
+                    className={`w-full ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-gray-200 text-slate-900'} text-xs font-bold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 shadow-2xs`}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-extrabold text-gray-700 block mb-1">
+                  <label className={`text-xs font-extrabold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} block mb-1`}>
                     Username (@handle)
                   </label>
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-[#0066FF] text-xs font-bold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black shadow-2xs"
+                    className={`w-full ${isDarkMode ? 'bg-slate-950 border-slate-800 text-blue-400' : 'bg-white border-gray-200 text-[#0066FF]'} text-xs font-bold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 shadow-2xs`}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-extrabold text-gray-700 block mb-1">
+                  <label className={`text-xs font-extrabold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} block mb-1`}>
                     Bio / Headline
                   </label>
                   <textarea
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     rows={2}
-                    className="w-full bg-white border border-gray-200 text-slate-900 text-xs font-semibold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black shadow-2xs leading-relaxed"
+                    className={`w-full ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-gray-200 text-slate-900'} text-xs font-semibold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 shadow-2xs leading-relaxed`}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-extrabold text-gray-700 block mb-1">
+                  <label className={`text-xs font-extrabold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} block mb-1`}>
                     Profession
                   </label>
                   <input
                     type="text"
                     value={profession}
                     onChange={(e) => setProfession(e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-slate-900 text-xs font-bold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black shadow-2xs"
+                    className={`w-full ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-gray-200 text-slate-900'} text-xs font-bold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 shadow-2xs`}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-extrabold text-gray-700 block mb-1">
+                  <label className={`text-xs font-extrabold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} block mb-1`}>
                     About / Personal Identity
                   </label>
                   <input
                     type="text"
                     value={personalIdentity}
                     onChange={(e) => setPersonalIdentity(e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-slate-900 text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black shadow-2xs"
+                    className={`w-full ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-gray-200 text-slate-900'} text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 shadow-2xs`}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-extrabold text-gray-700 block mb-1">
+                  <label className={`text-xs font-extrabold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} block mb-1`}>
                     Interests & Hobbies
                   </label>
                   <input
                     type="text"
                     value={hobbies}
                     onChange={(e) => setHobbies(e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-slate-900 text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black shadow-2xs"
+                    className={`w-full ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-gray-200 text-slate-900'} text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 shadow-2xs`}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-extrabold text-gray-700 block mb-1">
+                  <label className={`text-xs font-extrabold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} block mb-1`}>
                     Short Personal Description
                   </label>
                   <input
                     type="text"
                     value={shortDescription}
                     onChange={(e) => setShortDescription(e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-slate-900 text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black shadow-2xs"
+                    className={`w-full ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-gray-200 text-slate-900'} text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 shadow-2xs`}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-extrabold text-gray-700 block mb-1">
+                  <label className={`text-xs font-extrabold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} block mb-1`}>
                     Location (Optional)
                   </label>
                   <input
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-slate-900 text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black shadow-2xs"
+                    className={`w-full ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-gray-200 text-slate-900'} text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 shadow-2xs`}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-extrabold text-gray-700 block mb-1">
+                  <label className={`text-xs font-extrabold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} block mb-1`}>
                     Website (Optional)
                   </label>
                   <input
                     type="text"
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-blue-600 text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black shadow-2xs"
+                    className={`w-full ${isDarkMode ? 'bg-slate-950 border-slate-800 text-blue-400' : 'bg-white border-gray-200 text-blue-600'} text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 shadow-2xs`}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-extrabold text-gray-700 block mb-1">
+                  <label className={`text-xs font-extrabold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} block mb-1`}>
                     Date of Birth
                   </label>
                   <input
                     type="text"
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
-                    className="w-full bg-white border border-gray-200 text-slate-900 text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-black shadow-2xs"
+                    className={`w-full ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-gray-200 text-slate-900'} text-xs font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 shadow-2xs`}
                   />
                 </div>
 
@@ -1029,7 +1045,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                       {/* Delete button for own profile */}
                       {isOwnProfile && (
                         <button
-                          onClick={(e) => handleDeleteVideo(reel.id, e)}
+                          onClick={(e) => handleDeleteVideo(reel, e)}
                           className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-black/60 hover:bg-red-600 text-white flex items-center justify-center transition-colors shadow-md z-10"
                           title="Delete reel"
                         >
@@ -1148,6 +1164,37 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 </div>
               </form>
 
+            </div>
+          </div>
+        )}
+
+        {/* Custom Delete Confirmation Modal */}
+        {deletingReel && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className={`w-full max-w-sm ${isDarkMode ? 'bg-[#121824] text-white border-white/10' : 'bg-white text-slate-900 border-slate-200'} rounded-3xl p-6 shadow-2xl border flex flex-col gap-4 text-center animate-in zoom-in-95 duration-200`}>
+              <div className="w-14 h-14 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-1">
+                <Trash2 className="w-7 h-7" />
+              </div>
+              <h3 className="text-lg font-black">রিলটি মুছে ফেলতে চান?</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                এই ভিডিওটি স্থায়ীভাবে মুছে ফেলা হবে। এই কাজটি পরবর্তীতে আর পূর্বাবস্থায় ফেরানো যাবে না।
+              </p>
+              <div className="flex gap-3 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setDeletingReel(null)}
+                  className="flex-1 py-3 px-4 rounded-2xl bg-slate-500/10 hover:bg-slate-500/20 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteVideo}
+                  className="flex-1 py-3 px-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors shadow-lg shadow-red-600/30 cursor-pointer"
+                >
+                  হ্যাঁ, ডিলিট করুন
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -16,7 +16,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = memo(({
 }) => {
   return (
     <div className="pt-2 pb-2 px-4 overflow-hidden select-none">
-      <div className="flex justify-start items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth py-3 px-1">
+      <div className="flex justify-start items-center gap-3 overflow-x-auto no-scrollbar py-3 px-1">
         {stories.map((story, index) => {
           if (story.isCreate) {
             return (
@@ -24,10 +24,10 @@ export const StoriesSection: React.FC<StoriesSectionProps> = memo(({
                 key={story.id}
                 onClick={onCreateStory}
                 style={{ transform: 'rotate(-5.5deg)' }}
-                className="w-[118px] sm:w-[124px] h-[178px] sm:h-[184px] shrink-0 rounded-[24px] bg-[#05070c] border-[2.5px] border-slate-900 shadow-xl relative flex flex-col justify-between p-3.5 cursor-pointer hover:scale-105 transition-transform active:scale-95 group"
+                className="w-[118px] sm:w-[124px] h-[178px] sm:h-[184px] shrink-0 rounded-[24px] bg-[#05070c] border-[2.5px] border-slate-900 shadow-xl relative flex flex-col justify-between p-3.5 cursor-pointer"
               >
                 {/* Glowing Plus Circle */}
-                <div className="my-auto mx-auto w-12 h-12 rounded-full border-2 border-[#00f2fe] bg-[#00f2fe]/10 flex items-center justify-center text-[#00f2fe] shadow-[0_0_18px_rgba(0,242,254,0.4)] group-hover:scale-110 transition-transform">
+                <div className="my-auto mx-auto w-12 h-12 rounded-full border-2 border-[#00f2fe] bg-[#00f2fe]/10 flex items-center justify-center text-[#00f2fe] shadow-[0_0_18px_rgba(0,242,254,0.4)]">
                   <Plus className="w-6 h-6 stroke-[2.5]" />
                 </div>
 
@@ -60,7 +60,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = memo(({
             <div
               key={story.id}
               onClick={() => onSelectStory(story)}
-              className={`w-[118px] sm:w-[124px] h-[178px] sm:h-[184px] shrink-0 rounded-[24px] bg-[#0a0d14] ${outerBorder} ${currentRotation} overflow-hidden relative shadow-xl flex flex-col justify-between cursor-pointer hover:scale-105 transition-transform active:scale-95`}
+              className={`w-[118px] sm:w-[124px] h-[178px] sm:h-[184px] shrink-0 rounded-[24px] bg-[#0a0d14] ${outerBorder} ${currentRotation} overflow-hidden relative shadow-xl flex flex-col justify-between cursor-pointer`}
             >
               {/* Cover Scenery Image with Lazy Loading & Fallback */}
               <div className="h-[62%] w-full relative overflow-hidden bg-slate-900">

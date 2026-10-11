@@ -361,7 +361,14 @@ export const VideoDetailView: React.FC<VideoDetailViewProps> = ({
     }
   };
 
-  const isOwner = currentUser?.uid && video.userId === currentUser.uid;
+  const isOwner = Boolean(
+    currentUser && (
+      !video?.userId ||
+      (currentUser.uid && video.userId === currentUser.uid) ||
+      (currentUser.username && video.username === currentUser.username) ||
+      (currentUser.displayName && video.username === currentUser.displayName)
+    )
+  );
 
   return (
     <div

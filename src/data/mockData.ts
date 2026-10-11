@@ -9,6 +9,8 @@ export interface StoryItem {
   isCreate?: boolean;
   isVideo?: boolean;
   caption?: string;
+  expiresAt?: number;
+  durationHours?: number;
 }
 
 export interface VideoItem {

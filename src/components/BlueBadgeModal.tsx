@@ -722,6 +722,78 @@ export const BlueBadgeModal: React.FC<BlueBadgeModalProps> = ({
             </div>
           )}
 
+          {/* STEP 7: CHOOSE METHOD (PAID PLAY BILLING SUBSCRIPTION VS FREE ADMIN VERIFICATION) */}
+          {verificationStatus !== 'pending' && verificationStatus !== 'approved' && verificationStatus !== 'rejected' && step === 7 && (
+            <div className="flex-1 flex flex-col animate-in slide-in-from-right duration-300 overflow-y-auto">
+               <div className="p-8 space-y-2">
+                  <h1 className="text-2xl font-black text-slate-900">ভেরিফিকেশন পদ্ধতি নির্বাচন করুন</h1>
+                  <p className="text-sm text-slate-500 font-medium">আপনার ব্লু ব্যাজ পাওয়ার জন্য যেকোনো একটি মাধ্যম বেছে নিন।</p>
+               </div>
+
+               <div className="px-8 pb-8 space-y-4">
+                  {/* Option 1: Paid Subscription ($5 for 6 months via Google Play Billing) */}
+                  <div 
+                    onClick={() => {
+                      if (!nidFile || !selfieFile || !legalName.trim()) {
+                        triggerToast('⚠️ অনুগ্রহ করে আগের ধাপে NID এবং সেলফি ছবি প্রদান করুন।');
+                        setStep(4);
+                        return;
+                      }
+                      onClose();
+                      if (onOpenSubscription) onOpenSubscription();
+                    }}
+                    className="p-6 rounded-[28px] border-2 border-blue-600 bg-blue-50/50 hover:bg-blue-50 transition-all cursor-pointer flex flex-col gap-3 relative shadow-sm group"
+                  >
+                     <div className="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase">
+                       প্রস্তাবিত
+                     </div>
+                     <div className="flex items-center gap-3">
+                       <div className="w-12 h-12 rounded-2xl bg-[#0066FF] text-white flex items-center justify-center shadow-md">
+                         <CreditCard className="w-6 h-6" />
+                       </div>
+                       <div>
+                         <h3 className="text-base font-black text-slate-900">গুগল প্লে স্টোর সাবস্ক্রিপশন</h3>
+                         <p className="text-xs text-blue-600 font-bold">$৫ ডলার / ৬ মাস</p>
+                       </div>
+                     </div>
+                     <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                       গুগল প্লে স্টোর পেমেন্ট মেথড দিয়ে সরাসরি সাবস্ক্রিপশন চালু করুন এবং ইনস্ট্যান্ট ব্লু ব্যাজ পান।
+                     </p>
+                     <div className="flex items-center gap-2 text-xs font-black text-[#0066FF] pt-1">
+                       <span>পেমেন্ট করতে ট্যাপ করুন</span>
+                       <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                     </div>
+                  </div>
+
+                  {/* Option 2: Free Admin-Approved Request */}
+                  <div 
+                    onClick={() => handleCompleteVerification()}
+                    className="p-6 rounded-[28px] border-2 border-slate-200 bg-white hover:border-slate-950 transition-all cursor-pointer flex flex-col gap-3 shadow-sm group"
+                  >
+                     <div className="absolute top-4 right-4 bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase">
+                       ফ্রি
+                     </div>
+                     <div className="flex items-center gap-3">
+                       <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-md">
+                         <ShieldCheck className="w-6 h-6" />
+                       </div>
+                       <div>
+                         <h3 className="text-base font-black text-slate-900">ফ্রি অ্যাডমিন ভেরিফিকেশন</h3>
+                         <p className="text-xs text-emerald-600 font-bold">সম্পূর্ণ ফ্রি (ডকুমেন্টস যাচাই সাপেক্ষে)</p>
+                       </div>
+                     </div>
+                     <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                       আপনার NID ও সেলফি ছবি অ্যাডমিনের কাছে পাঠানো হবে। ডকুমেন্টস সঠিক থাকলে অ্যাডমিন অনুমোদন করবেন, অন্যথায় বাতিল করবেন।
+                     </p>
+                     <div className="flex items-center gap-2 text-xs font-black text-slate-900 pt-1">
+                       <span>ফ্রি রিকোয়েস্ট জমা দিন</span>
+                       <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                     </div>
+                  </div>
+               </div>
+            </div>
+          )}
+
           {/* ================= STATUS SCREENS (PENDING/APPROVED/REJECTED) ================= */}
           {(verificationStatus === 'pending' || verificationStatus === 'approved' || verificationStatus === 'rejected') && (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in zoom-in duration-300">
@@ -807,7 +879,7 @@ export const BlueBadgeModal: React.FC<BlueBadgeModalProps> = ({
         )}
 
         {/* Wizard Footer Buttons */}
-        {verificationStatus === 'not_started' && step >= 4 && (
+        {verificationStatus === 'not_started' && step >= 4 && step <= 6 && (
            <div className="p-8 pt-4 pb-10 bg-white shrink-0 border-t border-slate-50">
               <button
                 disabled={loading}
@@ -819,12 +891,16 @@ export const BlueBadgeModal: React.FC<BlueBadgeModalProps> = ({
                     if (!selfieFile) triggerToast('⚠️ সেলফি ছবি আপলোড করুন');
                     else setStep(6);
                   } else if (step === 6) {
-                    handleCompleteVerification();
+                    if (!legalName.trim() || !dob.trim()) {
+                      triggerToast('⚠️ জন্ম তারিখ ও নাম পূরণ করুন');
+                    } else {
+                      setStep(7); // Go to method selection (Paid subscription vs Free Admin request)
+                    }
                   }
                 }}
                 className={`w-full py-5 bg-slate-950 text-white rounded-3xl font-black text-sm flex items-center justify-center gap-3 shadow-2xl active:scale-[0.98] transition-all ${loading ? 'opacity-70' : ''}`}
               >
-                <span>{step === 6 ? (loading ? 'জমা হচ্ছে...' : 'আবেদন জমা দিন') : 'পরবর্তী'}</span>
+                <span>{step === 6 ? 'পদ্ধতি নির্বাচন করুন' : 'পরবর্তী'}</span>
                 {step < 6 && <ChevronRight className="w-5 h-5" />}
               </button>
            </div>

@@ -6,9 +6,10 @@ interface HeaderProps {
   onOpenNotifications: () => void;
   onOpenAdmin: () => void;
   unreadCount?: number;
+  isDarkMode?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = memo(({ onOpenMenu, onOpenNotifications, onOpenAdmin, unreadCount = 0 }) => {
+export const Header: React.FC<HeaderProps> = memo(({ onOpenMenu, onOpenNotifications, onOpenAdmin, unreadCount = 0, isDarkMode = true }) => {
   const [clickCount, setClickCount] = React.useState(0);
 
   const handleLogoClick = () => {
@@ -21,7 +22,7 @@ export const Header: React.FC<HeaderProps> = memo(({ onOpenMenu, onOpenNotificat
   };
 
   return (
-    <header className="px-5 pt-3 pb-2 flex items-center justify-between bg-white sticky top-0 z-30 select-none border-b border-slate-100">
+    <header className={`px-5 pt-3 pb-2 flex items-center justify-between ${isDarkMode ? 'bg-[#0a0d14] border-slate-800' : 'bg-white border-slate-100'} sticky top-0 z-30 select-none border-b`}>
       {/* Left: BINISTA Logo */}
       <div 
         className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform"

@@ -50,7 +50,7 @@ export const UploadModal: React.FC<UploadModalProps> = memo(({
   const [videoDescription, setVideoDescription] = useState('');
   const [videoSong, setVideoSong] = useState('Original Audio - BINISTA');
   const [videoThumbnail, setVideoThumbnail] = useState<string>(
-    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=75'
+    'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=600&q=75'
   );
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | undefined>(undefined);
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
@@ -116,7 +116,7 @@ export const UploadModal: React.FC<UploadModalProps> = memo(({
         setDurationError(null);
       }
     } catch (err) {
-      setVideoThumbnail('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=75');
+      setVideoThumbnail('https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=600&q=75');
       setDurationError(null);
     }
   };
@@ -186,7 +186,7 @@ export const UploadModal: React.FC<UploadModalProps> = memo(({
         thumbnailUrl: (() => {
           let t = videoThumbnail;
           if (!t || t.startsWith('blob:') || t.endsWith('.mp4') || t.endsWith('.mov') || t.endsWith('.webm') || t.includes('/video')) {
-            return 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=75';
+            return 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=600&q=75';
           }
           return t;
         })(),

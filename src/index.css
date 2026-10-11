@@ -8,4 +8,16 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  .hyper-scroll {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+    transform: translateZ(0);
+    will-change: scroll-position;
+    overflow-anchor: none;
+  }
+  .virtual-card {
+    content-visibility: auto;
+    contain-intrinsic-size: 320px;
+  }
 }

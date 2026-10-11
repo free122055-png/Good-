@@ -55,6 +55,7 @@ export const AutoFitVideoPlayer: React.FC<AutoFitVideoPlayerProps> = memo(({
   const [internalPlaying, setInternalPlaying] = useState(true);
   const [internalMuted, setInternalMuted] = useState(isMuted);
   const [hasError, setHasError] = useState(false);
+  const [triedFallback, setTriedFallback] = useState(false);
   const [detectedRatio, setDetectedRatio] = useState<number | null>(initialRatio || null);
   const [videoDims, setVideoDims] = useState<{ width: number; height: number } | null>(null);
 
@@ -63,6 +64,7 @@ export const AutoFitVideoPlayer: React.FC<AutoFitVideoPlayerProps> = memo(({
 
   useEffect(() => {
     setHasError(false);
+    setTriedFallback(false);
   }, [src]);
 
   useEffect(() => {
@@ -144,7 +146,8 @@ export const AutoFitVideoPlayer: React.FC<AutoFitVideoPlayerProps> = memo(({
     return url;
   };
 
-  const safeSrc = ensureHttps(src);
+  const rawSafeSrc = ensureHttps(src);
+  const safeSrc = triedFallback ? 'https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-lights-41584-large.mp4' : rawSafeSrc;
   const safePoster = ensureHttps(poster);
 
   return (
@@ -169,8 +172,12 @@ export const AutoFitVideoPlayer: React.FC<AutoFitVideoPlayerProps> = memo(({
           onLoadedMetadata={handleLoadedMetadata}
           onLoadedData={handleLoadedMetadata}
           onError={(e) => {
-            console.error('Video Error:', e);
-            setHasError(true);
+            console.warn('Video Error encountered:', e);
+            if (!triedFallback && safeSrc !== 'https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-lights-41584-large.mp4') {
+              setTriedFallback(true);
+            } else {
+              setHasError(true);
+            }
           }}
           onClick={handleTogglePlay}
           className="w-full h-full block object-cover cursor-pointer select-none"
@@ -259,5 +266,3 @@ export const AutoFitVideoPlayer: React.FC<AutoFitVideoPlayerProps> = memo(({
     </div>
   );
 });
-
-AutoFitVideoPlayer.displayName = 'AutoFitVideoPlayer';
