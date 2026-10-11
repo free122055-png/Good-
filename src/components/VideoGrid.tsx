@@ -20,15 +20,15 @@ export const VideoGrid: React.FC<VideoGridProps> = memo(({
   hasMore,
   isLoadingMore,
 }) => {
-  // Split into two balanced columns for true Masonry Dynamic Aspect Ratio feed
-  const col1 = videos.filter((_, i) => i % 2 === 0);
-  const col2 = videos.filter((_, i) => i % 2 === 1);
+  // Split into two balanced columns with useMemo for high-performance scrolling
+  const col1 = React.useMemo(() => videos.filter((_, i) => i % 2 === 0), [videos]);
+  const col2 = React.useMemo(() => videos.filter((_, i) => i % 2 === 1), [videos]);
 
   const renderVideoCard = (video: VideoItem, index: number) => {
     const ratio = video.aspectRatio || 0.75;
     const safeThumbnailUrl = video.thumbnailUrl && video.thumbnailUrl.startsWith('http://') 
       ? video.thumbnailUrl.replace('http://', 'https://') 
-      : video.thumbnailUrl;
+      : (video.thumbnailUrl || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=75');
 
     return (
       <div
@@ -47,9 +47,12 @@ export const VideoGrid: React.FC<VideoGridProps> = memo(({
           decoding="async"
           crossOrigin="anonymous"
           onError={(e) => {
-            (e.target as HTMLElement).style.opacity = '0.7';
+            const target = e.currentTarget as HTMLImageElement;
+            if (!target.src.includes('unsplash.com')) {
+              target.src = 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=75';
+            }
           }}
-          className="w-full h-full block object-contain group-hover:scale-105 transition-transform duration-300 pointer-events-none"
+          className="w-full h-full block object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
           style={{
             aspectRatio: `${ratio}`,
           }}

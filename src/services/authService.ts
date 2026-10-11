@@ -16,6 +16,7 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import { db, auth } from '../firebase';
+import { buildApiUrl } from './apiConfig';
 
 export interface UserData {
   uid: string;
@@ -272,7 +273,7 @@ export async function sendOtpCode(target: string, type: 'phone' | 'email'): Prom
 
   // 4. Call BINISTA Unified OTP Gateway (Server-side delivery via Resend / SMS)
   try {
-    const res = await fetch('/api/otp/send', {
+    const res = await fetch(buildApiUrl('/api/otp/send'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: target, type, code }), // 'email' key is used for the target string on server
@@ -368,7 +369,7 @@ export async function verifyOtpCode(target: string, type: 'phone' | 'email', ent
       } catch (e) {}
 
       // Fire & forget server cleanup
-      fetch('/api/otp/verify', {
+      fetch(buildApiUrl('/api/otp/verify'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: target, otp: trimmed, type }),
@@ -382,7 +383,7 @@ export async function verifyOtpCode(target: string, type: 'phone' | 'email', ent
 
   // Tier 5: Safe server-side verification check (without crashing on HTML redirects)
   try {
-    const res = await fetch('/api/otp/verify', {
+    const res = await fetch(buildApiUrl('/api/otp/verify'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: target, otp: trimmed, type }),

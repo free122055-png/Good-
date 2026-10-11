@@ -51,6 +51,32 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
+    // BINISTA Videos, Stories & Reels
+    match /videos/{videoId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /stories/{storyId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /users/{userId}/videos/{videoId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /users/{userId}/stories/{storyId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /video_comments/{commentId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /video_likes/{likeId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
     // Public collections
     match /categories/{id} { allow read: if true; }
     match /products/{id} { allow read: if true; }

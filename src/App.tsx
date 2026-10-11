@@ -19,7 +19,8 @@ import { HelpSupportModal } from './components/HelpSupportModal';
 import { AuthModal } from './components/AuthModal';
 import { BlueBadgeModal } from './components/BlueBadgeModal';
 import { SubscriptionManagementModal } from './components/SubscriptionManagementModal';
-import { NotificationCenterModal } from './components/NotificationCenterModal';
+import { NotificationCenterPage } from './components/NotificationCenterPage';
+import { NotificationSettingsPage } from './components/NotificationSettingsPage';
 import { AdminPanel } from './components/AdminPanel';
 import { BinistaAiCard } from './components/BinistaAiCard';
 import { BinistaAiModal } from './components/BinistaAiModal';
@@ -80,6 +81,7 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isBinistaAiOpen, setIsBinistaAiOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
+  const [isNotificationSettingsOpen, setIsNotificationSettingsOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -230,7 +232,11 @@ export default function App() {
     // 1. Setup Live Real-time Public Videos listener from Firestore
     const unsubFeed = listenToGlobalPublicVideos((livePublicVideos) => {
       if (livePublicVideos && livePublicVideos.length > 0) {
-        setVideos(livePublicVideos);
+        const merged = [
+          ...livePublicVideos,
+          ...VIDEOS_DATA.filter((v) => !livePublicVideos.some((l) => l.id === v.id)),
+        ];
+        setVideos(merged);
       } else {
         setVideos(VIDEOS_DATA);
       }
@@ -644,9 +650,23 @@ export default function App() {
           triggerToast={triggerToast}
         />
 
-        <NotificationCenterModal
+        <NotificationCenterPage
           isOpen={isNotificationCenterOpen}
           onClose={() => setIsNotificationCenterOpen(false)}
+          currentUser={currentUser}
+          triggerToast={triggerToast}
+          onOpenSettings={() => setIsNotificationSettingsOpen(true)}
+          onNavigateToTarget={(targetType, targetId) => {
+            setIsNotificationCenterOpen(false);
+            if (targetType === 'profile' && targetId) {
+              // open profile or video
+            }
+          }}
+        />
+
+        <NotificationSettingsPage
+          isOpen={isNotificationSettingsOpen}
+          onClose={() => setIsNotificationSettingsOpen(false)}
           currentUser={currentUser}
           triggerToast={triggerToast}
         />

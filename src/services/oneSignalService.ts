@@ -1,6 +1,7 @@
 import OneSignal from 'react-onesignal';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase';
+import { buildApiUrl } from './apiConfig';
 
 export const ONESIGNAL_APP_ID = 'd28392ee-2a0f-4f62-ba65-03fb3e0915ab';
 
@@ -112,7 +113,7 @@ export async function sendOneSignalPush(params: {
   uid?: string;
 }): Promise<{ success: boolean; message: string; data?: any }> {
   try {
-    const res = await fetch('/api/notifications/onesignal/send', {
+    const res = await fetch(buildApiUrl('/api/notifications/onesignal/send'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -122,6 +123,13 @@ export async function sendOneSignalPush(params: {
         uid: params.uid,
       }),
     });
+
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      const text = await res.text();
+      console.warn('Non-JSON response from OneSignal send endpoint:', text.substring(0, 100));
+      return { success: false, message: 'Server returned non-JSON response' };
+    }
 
     const data = await res.json();
     return data;

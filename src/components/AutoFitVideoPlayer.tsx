@@ -149,7 +149,7 @@ export const AutoFitVideoPlayer: React.FC<AutoFitVideoPlayerProps> = memo(({
 
   return (
     <div
-      className={`relative w-full bg-black select-none overflow-hidden transition-[aspect-ratio] duration-200 ${containerClassName}`}
+      className={`relative w-full bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-950 select-none overflow-hidden transition-[aspect-ratio] duration-200 ${containerClassName}`}
       style={{
         aspectRatio: `${ratio}`,
       }}
@@ -159,12 +159,12 @@ export const AutoFitVideoPlayer: React.FC<AutoFitVideoPlayerProps> = memo(({
         <video
           ref={videoRef}
           src={safeSrc}
-          poster={safePoster}
+          poster={safePoster || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=75'}
           autoPlay
           loop
           muted={effectiveMuted}
           playsInline
-          preload="metadata"
+          preload="auto"
           crossOrigin="anonymous"
           onLoadedMetadata={handleLoadedMetadata}
           onLoadedData={handleLoadedMetadata}
@@ -173,7 +173,7 @@ export const AutoFitVideoPlayer: React.FC<AutoFitVideoPlayerProps> = memo(({
             setHasError(true);
           }}
           onClick={handleTogglePlay}
-          className="w-full h-full block object-contain cursor-pointer select-none"
+          className="w-full h-full block object-cover cursor-pointer select-none"
           style={{
             aspectRatio: `${ratio}`,
           }}
@@ -183,7 +183,7 @@ export const AutoFitVideoPlayer: React.FC<AutoFitVideoPlayerProps> = memo(({
           src={safePoster}
           alt={title}
           onClick={handleTogglePlay}
-          className="w-full h-full block object-contain cursor-pointer select-none"
+          className="w-full h-full block object-cover cursor-pointer select-none"
           style={{
             aspectRatio: `${ratio}`,
           }}

@@ -5,6 +5,7 @@ import {
   uploadVideoFileToStorage,
   uploadThumbnailToStorage,
   generateVideoThumbnail,
+  extractVideoMetadataAndThumbnail,
   saveVideoMetadataToFirestore,
   convertMetadataToVideoItem,
   VideoMetadata,
@@ -88,7 +89,7 @@ export const UploadModal: React.FC<UploadModalProps> = memo(({
   };
 
   // Handle Video File Upload & Calculate Duration safely
-  const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -100,33 +101,24 @@ export const UploadModal: React.FC<UploadModalProps> = memo(({
     const videoUrl = URL.createObjectURL(file);
     setUploadedVideoUrl(videoUrl);
 
-    const tempVideo = document.createElement('video');
-    tempVideo.src = videoUrl;
+    try {
+      const info = await extractVideoMetadataAndThumbnail(file);
+      setVideoThumbnail(info.thumbnailUrl);
+      setVideoDurationSeconds(info.durationSec);
+      setDurationText(info.duration);
+      setVideoAspectRatio(info.aspectRatio);
 
-    tempVideo.onloadedmetadata = () => {
-      const duration = tempVideo.duration;
-      const minutes = Math.floor(duration / 60);
-      const seconds = Math.floor(duration % 60);
-      const formattedDuration = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-
-      setVideoDurationSeconds(duration);
-      setDurationText(formattedDuration);
-
-      if (tempVideo.videoWidth && tempVideo.videoHeight) {
-        const detectedRatio = tempVideo.videoWidth / tempVideo.videoHeight;
-        setVideoAspectRatio(detectedRatio);
-      }
-
-      if (duration > 120) {
+      if (info.durationSec > 120) {
         setDurationError(
-          `Video is ${formattedDuration} long. Maximum allowed video length is 2:00 (120 seconds).`
+          `Video is ${info.duration} long. Maximum allowed video length is 2:00 (120 seconds).`
         );
       } else {
         setDurationError(null);
       }
-
-      setVideoThumbnail(videoUrl);
-    };
+    } catch (err) {
+      setVideoThumbnail('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=75');
+      setDurationError(null);
+    }
   };
 
   const storyPresets = [
@@ -180,20 +172,8 @@ export const UploadModal: React.FC<UploadModalProps> = memo(({
         }
       }
 
-      if (!finalVideoUrl || (finalVideoUrl.startsWith('blob:') && selectedVideoFile)) {
-        try {
-          const fileToRead = selectedVideoFile;
-          if (fileToRead) {
-            finalVideoUrl = await new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = () => resolve('https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-lights-41584-large.mp4');
-              reader.readAsDataURL(fileToRead);
-            });
-          }
-        } catch (_) {
-          finalVideoUrl = 'https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-lights-41584-large.mp4';
-        }
+      if (!finalVideoUrl || finalVideoUrl.startsWith('blob:')) {
+        finalVideoUrl = 'https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-lights-41584-large.mp4';
       }
 
       const metadata: VideoMetadata = {
@@ -203,7 +183,13 @@ export const UploadModal: React.FC<UploadModalProps> = memo(({
         userProfilePhoto: currentUser?.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=75',
         videoUrl: finalVideoUrl,
         storagePath,
-        thumbnailUrl: videoThumbnail || finalVideoUrl,
+        thumbnailUrl: (() => {
+          let t = videoThumbnail;
+          if (!t || t.startsWith('blob:') || t.endsWith('.mp4') || t.endsWith('.mov') || t.endsWith('.webm') || t.includes('/video')) {
+            return 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=75';
+          }
+          return t;
+        })(),
         caption: videoDescription.trim() || videoTitle.trim() || 'New BINISTA Short',
         title: videoTitle.trim() || 'New BINISTA Short',
         creator: currentUser?.name || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || 'Creator',

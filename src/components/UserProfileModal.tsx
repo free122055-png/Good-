@@ -332,7 +332,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     e.stopPropagation();
     if (!window.confirm('আপনি কি নিশ্চিত যে আপনি এই ভিডিওটি স্থায়ীভাবে মুছে ফেলতে চান?')) return;
     try {
-      await deleteVideoPermanent(activeUserId, videoId);
+      const targetUid = sessionUser?.uid || activeUserId || 'guest_creator';
+      await deleteVideoPermanent(targetUid, videoId);
       setUserVideos((prev) => prev.filter((v) => v.id !== videoId));
       triggerToast('রিলটি স্থায়ীভাবে মুছে ফেলা হয়েছে');
     } catch (err: any) {

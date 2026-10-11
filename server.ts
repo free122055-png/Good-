@@ -1034,6 +1034,59 @@ async function startServer() {
     }
   });
 
+  // BINISTA Reel & Short Video Upload Endpoint
+  app.post("/api/videos/upload", async (req, res) => {
+    try {
+      const { uid, videoId, base64Data, contentType, video } = req.body;
+      const rawData = base64Data || video;
+      if (!rawData) {
+        return res.status(400).json({ success: false, error: "No video payload received" });
+      }
+
+      let cleanBase64 = rawData;
+      let ext = "mp4";
+      if (rawData.includes(",")) {
+        const parts = rawData.split(",");
+        const match = parts[0].match(/:(.*?);/);
+        if (match && match[1]) {
+          const mime = match[1];
+          if (mime.includes("webm")) ext = "webm";
+          else if (mime.includes("mov") || mime.includes("quicktime")) ext = "mov";
+          else ext = "mp4";
+        }
+        cleanBase64 = parts[1];
+      }
+
+      const videosDir = path.join(uploadsDir, "videos");
+      if (!fs.existsSync(videosDir)) {
+        fs.mkdirSync(videosDir, { recursive: true });
+      }
+
+      const fileName = `binista_${videoId || Date.now()}_${Date.now()}.${ext}`;
+      const filePath = path.join(videosDir, fileName);
+
+      const buffer = Buffer.from(cleanBase64, "base64");
+      fs.writeFileSync(filePath, buffer);
+
+      const forwardedHost = req.headers["x-forwarded-host"] || req.get("host") || "";
+      const host = String(forwardedHost).split(",")[0].trim();
+      const proto = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
+      const publicUrl = `${proto}://${host}/uploads/videos/${fileName}`;
+
+      console.log(`[Upload] BINISTA video saved successfully: ${publicUrl} (${(buffer.length / (1024 * 1024)).toFixed(2)} MB)`);
+      return res.json({
+        success: true,
+        videoUrl: publicUrl,
+        url: publicUrl,
+        storagePath: `uploads/videos/${fileName}`,
+        size: buffer.length
+      });
+    } catch (err: any) {
+      console.error("[Upload] BINISTA video upload error:", err.message);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // Video Upload Endpoint (Supports up to 1-hour Tilawat videos)
   app.post("/api/upload/video", async (req, res) => {
     try {

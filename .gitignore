@@ -7,6 +7,8 @@ coverage/
 .env*
 !.env.example
 *.keystore
+!release.keystore
+!android/app/release.keystore
 *.jks
 *.pem
 *.zip
